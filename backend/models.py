@@ -71,8 +71,12 @@ class Category(db.Model):
     def __init__(self, type):
         self.type = type
 
+    # def format(self):
+    #     return {
+    #         'id': self.id,
+    #         'type': self.type
+    #         }
     def format(self):
         return {
-            'id': self.id,
-            'type': self.type
+            self.id: self.type
             }
