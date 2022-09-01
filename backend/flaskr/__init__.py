@@ -54,19 +54,22 @@ def create_app(test_config=None):
     """
     @app.route("/categories")
     def retrieve_categories():
-        cat_dict = {}
-        categories = Category.query.order_by(Category.id).all()
-        for category in categories:
-            cat = category.format()
-            cat_dict.update(cat)
+        try: 
+            cat_dict = {}
+            categories = Category.query.order_by(Category.id).all()
+            for category in categories:
+                cat = category.format()
+                cat_dict.update(cat)
 
-        return jsonify(
-            {
-                "success": True,
-                "categories": cat_dict,
-                "total_category": len(Category.query.all()),
-            }
-        )
+            return jsonify(
+                {
+                    "success": True,
+                    "categories": cat_dict,
+                    "total_category": len(Category.query.all()),
+                }
+            )
+        except:
+            abort(405)
 
     """
     @TODO:
@@ -87,21 +90,23 @@ def create_app(test_config=None):
         for category in categories:
             cat = category.format()
             cat_dict.update(cat)
+        try: 
+            selection = Question.query.order_by(Question.id).all()
+            current_question = paginate_questions(request, selection)
 
-        selection = Question.query.order_by(Question.id).all()
-        current_question = paginate_questions(request, selection)
+            if len(current_question) == 0:
+                abort(404)
 
-        if len(current_question) == 0:
+            return jsonify(
+                {
+                    "success": True,
+                    "questions": current_question,
+                    "totalQuestions": len(Question.query.all()),
+                    "categories": cat_dict,
+                }
+            )
+        except:
             abort(404)
-
-        return jsonify(
-            {
-                "success": True,
-                "questions": current_question,
-                "totalQuestions": len(Question.query.all()),
-                "categories": cat_dict,
-            }
-        )
         
 
     """
@@ -198,7 +203,9 @@ def create_app(test_config=None):
             abort(404)
 
         try:
-            selection = Question.query.filter(Question.question.ilike(searchTerm)).all()
+            selection = Question.query.filter(Question.question.ilike
+                                                  (f'%{searchTerm}%')).all()
+            #selection = Question.query.filter(Question.question.ilike(searchTerm)).all()
             question = [question.format() for question in selection]
             #check if the result of the query is empty
             if selection == '':
@@ -213,7 +220,7 @@ def create_app(test_config=None):
                     }
                 )
         except:
-            abort(422)
+            abort(405)
 
     """
     @TODO:

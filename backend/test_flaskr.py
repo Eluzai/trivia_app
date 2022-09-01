@@ -2,9 +2,9 @@ import os
 import unittest
 import json
 from flask_sqlalchemy import SQLAlchemy
-
 from flaskr import create_app
 from models import setup_db, Question, Category
+from test_setting import DB_TEST_NAME
 
 class TriviaTestCase(unittest.TestCase):
     """This class represents the trivia test case"""
@@ -13,7 +13,7 @@ class TriviaTestCase(unittest.TestCase):
         """Define test variables and initialize app."""
         self.app = create_app()
         self.client = self.app.test_client
-        self.database_name = "trivia_test"
+        self.database_name = DB_TEST_NAME
         self.database_path = "postgresql://{}/{}".format('localhost:5432', self.database_name)
         setup_db(self.app, self.database_path)
 
@@ -41,6 +41,12 @@ class TriviaTestCase(unittest.TestCase):
         self.assertEqual(data['success'], True)
         self.assertTrue(data['categories'])
     
+    def test_retrieve_categories_failure(self):
+        res = self.client().delete("/categories")
+        data = json.loads(res.data)
+
+        self.assertEqual(res.status_code, 405)
+
     def test_retrieve_paginate_questions(self):
         res = self.client().get('/questions')
         data = json.loads(res.data)
@@ -58,7 +64,7 @@ class TriviaTestCase(unittest.TestCase):
         self.assertEqual(res.status_code, 404)
 
     def test_delete_question_by_id(self):
-        res = self.client().delete('/questions/16')
+        res = self.client().delete('/questions/22')
         data = json.loads(res.data)
 
         self.assertEqual(res.status_code, 200)
@@ -67,7 +73,7 @@ class TriviaTestCase(unittest.TestCase):
         self.assertTrue(data['message'])
 
     def test_delete_question_by_id_failure(self):
-        res = self.client().delete("/questions/271")
+        res = self.client().delete("/questions/450")
         data = json.loads(res.data)
 
         self.assertEqual(res.status_code, 404)
@@ -85,7 +91,13 @@ class TriviaTestCase(unittest.TestCase):
         self.assertEqual(res.status_code, 200)
         self.assertEqual(data['success'], True)
         self.assertTrue(data['created'])
-    
+
+    def test_new_question_failure(self):
+        res = self.client().delete('/questions')
+        data = json.loads(res.data)
+
+        self.assertEqual(res.status_code, 405)
+
     def test_get_questions_by_category(self):
         res = self.client().get('/categories/3/questions')
         data = json.loads(res.data)
@@ -95,16 +107,26 @@ class TriviaTestCase(unittest.TestCase):
         self.assertTrue(data['questions'])
         self.assertTrue(data['totalQuestions'])
 
+    def test_get_questions_by_category_failure(self):
+        res = self.client().delete('/categories/100/questions')
+        data = json.loads(res.data)
+
+        self.assertEqual(res.status_code, 405)
+    
     def test_search_question(self):
-
         test_data = {"searchTerm":"What is an API"}
-
         res = self.client().post('/questions/search', json=test_data)
         data = json.loads(res.data)
 
         self.assertEqual(res.status_code, 200)
         self.assertEqual(data['success'], True)
         self.assertTrue(data['questions'])
+
+    def test_search_question_failure(self):
+        res = self.client().delete('/questions/search')
+        data = json.loads(res.data)
+
+        self.assertEqual(res.status_code, 405)
 
     def test_play_quiz_(self):
         test_data = {
@@ -119,8 +141,14 @@ class TriviaTestCase(unittest.TestCase):
         self.assertEqual(data['success'], True)
         self.assertTrue(data['question'])
 
+    def test_play_quiz_failure(self):
+        res = self.client().delete('/questions/search')
+        data = json.loads(res.data)
 
+        self.assertEqual(res.status_code, 405)
 
 # Make the tests conveniently executable
 if __name__ == "__main__":
     unittest.main()
+
+
