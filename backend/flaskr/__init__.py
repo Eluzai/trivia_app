@@ -244,6 +244,7 @@ def create_app(test_config=None):
                     "currentCategory": category
                 }
             )
+            
                 
         except:
             abort(422)
@@ -269,7 +270,9 @@ def create_app(test_config=None):
 
             if not questions: 
                 question = None
-                abort(404)
+                return jsonify({
+                    'success':True
+                })
             else: 
                 question = random.choice(questions)
 
